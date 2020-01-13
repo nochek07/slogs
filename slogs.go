@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	squeeze2 "slogs/squeeze"
+	"slogs/squeeze"
 	"strings"
+	"sync"
 )
 
 const prefix = "_"
@@ -15,7 +16,7 @@ const prefix = "_"
 type ArgsAndFlags struct {
 	rootPath, extFlag, datePatternFlag string
 	recursionFlag, removeFlag bool
-	dateLengthFlag int
+	dateLengthFlag, sizeFileAsync int
 }
 
 func main() {
@@ -24,6 +25,7 @@ func main() {
 	removeFlag := flag.Bool("rm", false, "Remove files (default: false")
 	dateLengthFlag := flag.Int("dlen", 15, "Date length (default: 15")
 	datePatternFlag := flag.String("dpat", "Jan _2 15:04:05", "Date pattern (\"Jan _2 15:04:05\"")
+	sizeFileAsync := flag.Int("as", 5, "File size (more or equal) for async (default: 5MB")
 	flag.Parse()
 
 	rootPath := "./"
@@ -38,6 +40,7 @@ func main() {
 		removeFlag: *removeFlag,
 		dateLengthFlag: *dateLengthFlag,
 		datePatternFlag: *datePatternFlag,
+		sizeFileAsync: *sizeFileAsync,
 	}
 
 	files, err := findFiles(flags)
@@ -90,20 +93,38 @@ func recursionGlob(filePath string, extension string) ([]string, error) {
 	return files, err
 }
 
-func squeezeFiles(files []string, flags ArgsAndFlags)  {
-	for _, nameFile := range files {
-		mapStat, err := squeeze2.GetMapStat(nameFile, flags.dateLengthFlag, flags.datePatternFlag)
+func squeezeFiles(files []string, flags ArgsAndFlags) {
+	var wg sync.WaitGroup
+
+	squeezeFile := func(nameFile string, info os.FileInfo,async bool) {
+		if async {
+			defer wg.Done()
+		}
+		mapStat, err := squeeze.GetMapStat(nameFile, flags.dateLengthFlag, flags.datePatternFlag)
 		if err == nil {
-			info, _ := os.Stat(nameFile)
 			name := info.Name()
 			if !strings.HasPrefix(name, prefix) {
-				err = squeeze2.ReturnResult(filepath.Dir(nameFile)+"/" + prefix + name, mapStat)
+				err = squeeze.ReturnResult(filepath.Dir(nameFile)+"/" + prefix + name, mapStat)
 				if err != nil {
 					fmt.Println(err)
-				} else if flags.removeFlag {
-					_ = os.Remove(nameFile)
+				} else {
+					fmt.Println("OK: " + nameFile)
+					if flags.removeFlag {
+						_ = os.Remove(nameFile)
+					}
 				}
 			}
 		}
 	}
+
+	for _, nameFile := range files {
+		info, _ := os.Stat(nameFile)
+		if int(info.Size()/1048576) >= flags.sizeFileAsync {
+			wg.Add(1)
+			go squeezeFile(nameFile, info, true)
+		} else {
+			squeezeFile(nameFile, info, false)
+		}
+	}
+	wg.Wait()
 }

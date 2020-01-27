@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"sort"
 	"strings"
 	"time"
 )
@@ -12,11 +11,6 @@ import (
 type Stat struct {
 	repeat, index uint
 	date string
-}
-
-type keyValue struct {
-	Key string
-	Value uint
 }
 
 func GetMapStat(nameFile string, dateLength int, datePattern string) (map[string]Stat, error) {
@@ -65,20 +59,15 @@ func ReturnResult(nameFile string, mapValues map[string]Stat) error {
 	}
 	defer file.Close()
 
-	var sortedStructByRepeat, sortedStructByIndex []keyValue
+	var sortedStructByRepeat, sortedStructByIndex []KeyValue
 
 	for key, mapValue := range mapValues {
-		sortedStructByRepeat = append(sortedStructByRepeat, keyValue{key, mapValue.repeat})
-		sortedStructByIndex  = append(sortedStructByIndex, keyValue{key, mapValue.index})
+		sortedStructByRepeat = append(sortedStructByRepeat, KeyValue{key, mapValue.repeat})
+		sortedStructByIndex  = append(sortedStructByIndex, KeyValue{key, mapValue.index})
 	}
 
-	sort.Slice(sortedStructByRepeat, func(i, j int) bool {
-		return sortedStructByRepeat[i].Value > sortedStructByRepeat[j].Value
-	})
-
-	sort.Slice(sortedStructByIndex, func(i, j int) bool {
-		return sortedStructByIndex[i].Value < sortedStructByIndex[j].Value
-	})
+	sortedStructByRepeat = KeyValueByRepeat{}.sort(sortedStructByRepeat)
+	sortedStructByIndex = KeyValueByIndex{}.sort(sortedStructByIndex)
 
 	var strResultStart, strResultEnd string
 	for _, keyValue := range sortedStructByIndex {

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/fatih/color"
 	"os"
 	"path/filepath"
 	"slogs/squeeze"
@@ -12,6 +13,12 @@ import (
 )
 
 const prefix = "_"
+
+var (
+	redColor = color.New(color.FgRed)
+	greenColor = color.New(color.FgGreen)
+	greenColorFunc = greenColor.SprintFunc()
+)
 
 type ArgsAndFlags struct {
 	rootPath, extFlag, datePatternFlag string
@@ -45,7 +52,7 @@ func main() {
 
 	files, err := findFiles(flags)
 	if err != nil {
-		fmt.Println(err)
+		_, _ = redColor.Println(err)
 		return
 	}
 
@@ -53,7 +60,7 @@ func main() {
 		squeezeFiles(files, flags)
 	}
 
-	fmt.Println("Done!")
+	_, _ = greenColor.Println("DONE!")
 }
 
 func findFiles(flags ArgsAndFlags) ([]string, error) {
@@ -106,14 +113,16 @@ func squeezeFiles(files []string, flags ArgsAndFlags) {
 			if !strings.HasPrefix(name, prefix) {
 				err = squeeze.ReturnResult(filepath.Dir(nameFile)+"/" + prefix + name, mapStat)
 				if err != nil {
-					fmt.Println(err)
+					_, _ = redColor.Println(err)
 				} else {
-					fmt.Println("OK: " + nameFile)
+					fmt.Printf("%s: %s\n", greenColorFunc("OK"), nameFile)
 					if flags.removeFlag {
 						_ = os.Remove(nameFile)
 					}
 				}
 			}
+		} else {
+			_, _ = redColor.Println(err)
 		}
 	}
 

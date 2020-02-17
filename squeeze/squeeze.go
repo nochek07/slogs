@@ -16,7 +16,6 @@ type Stat struct {
 func GetMapStat(nameFile string, dateLength int, datePattern string) (map[string]Stat, error) {
 	file, err := os.Open(nameFile)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	}
 	defer file.Close()

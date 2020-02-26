@@ -1,89 +1,112 @@
 package squeeze
 
 import (
-	"bufio"
+	"errors"
 	"fmt"
+	"github.com/fatih/color"
+	"github.com/urfave/cli/v2"
 	"os"
+	"path/filepath"
 	"strings"
-	"time"
+	"sync"
 )
 
-type Stat struct {
-	repeat, index uint
-	date string
+const prefix = "_"
+
+var (
+	redColor = color.New(color.FgRed)
+	greenColor = color.New(color.FgGreen)
+	greenColorFunc = greenColor.SprintFunc()
+)
+
+func Squeeze(context *cli.Context) {
+	rootPath := "./"
+	if context.Args().Len() > 0 {
+		rootPath = context.Args().First()
+	}
+
+	files, err := findFiles(rootPath, context)
+	if err != nil {
+		_, _ = redColor.Println(err)
+	} else {
+		if len(files) > 0 {
+			squeezeFiles(files, context)
+			_, _ = greenColor.Println("DONE!")
+		}
+	}
 }
 
-func GetMapStat(nameFile string, dateLength int, datePattern string) (map[string]Stat, error) {
-	file, err := os.Open(nameFile)
-	if err != nil {
-		return nil, err
+func findFiles(rootPath string, context *cli.Context) ([]string, error) {
+	var files []string
+	var err error
+
+	info, errInfo := os.Stat(rootPath)
+
+	if os.IsNotExist(errInfo) {
+		err = errors.New("path error")
+	} else {
+		if !info.IsDir() {
+			files, err = filepath.Glob(rootPath)
+		} else if context.Bool("r") {
+			files, err = recursionGlob(rootPath, context.String("ext"))
+		} else {
+			files, err = filepath.Glob(rootPath + "/*" + context.String("ext"))
+		}
 	}
-	defer file.Close()
 
-	mapStat := make(map[string]Stat)
+	return files, err
+}
 
-	scanner := bufio.NewScanner(file)
-	var index uint = 0
-	for scanner.Scan() {
-		str := scanner.Text()
-		if len(str)>dateLength {
-			strData := str[:dateLength]
+func recursionGlob(filePath string, extension string) ([]string, error) {
+	var files []string
 
-			_, err = time.Parse(datePattern, strData)
-			if err == nil {
-				str = strings.TrimPrefix(str, strData)
-				str = strings.TrimSpace(str)
-
-				if value, ok := mapStat[str]; ok {
-					value.repeat++
-					value.index = index
-					value.date = strData
-					mapStat[str] = value
-				} else {
-					mapStat[str] = Stat{1, index, strData}
-				}
+	err := filepath.Walk(filePath, func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			ext := filepath.Ext(path)
+			if ext == extension {
+				files = append(files, path)
 			}
 		}
-		index++
-	}
-	return mapStat, nil
+		return nil
+	})
+
+	return files, err
 }
 
-func ReturnResult(nameFile string, mapValues map[string]Stat) error {
+func squeezeFiles(files []string, context *cli.Context) {
+	var wg sync.WaitGroup
 
-	file, err := os.OpenFile(nameFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0777)
-
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	var sortedStructByRepeat, sortedStructByIndex []KeyValue
-
-	for key, mapValue := range mapValues {
-		sortedStructByRepeat = append(sortedStructByRepeat, KeyValue{key, mapValue.repeat})
-		sortedStructByIndex  = append(sortedStructByIndex, KeyValue{key, mapValue.index})
-	}
-
-	sortedStructByRepeat = KeyValueByRepeat{}.sort(sortedStructByRepeat)
-	sortedStructByIndex = KeyValueByIndex{}.sort(sortedStructByIndex)
-
-	var strResultStart, strResultEnd string
-	for _, keyValue := range sortedStructByIndex {
-		strResultStart += mapValues[keyValue.Key].date + " " + keyValue.Key + "\n"
-	}
-
-	for _, keyValue := range sortedStructByRepeat {
-		if keyValue.Value != 1 {
-			strResultEnd += fmt.Sprint(keyValue.Value) + "\t" + keyValue.Key + "\n"
+	squeezeFile := func(nameFile string, info os.FileInfo,async bool) {
+		if async {
+			defer wg.Done()
+		}
+		mapStat, err := GetMapStat(nameFile, context.Int("dlen"), context.String("dpat"))
+		if err == nil {
+			name := info.Name()
+			if !strings.HasPrefix(name, prefix) {
+				err = ReturnResult(filepath.Dir(nameFile)+"/" + prefix + name, mapStat)
+				if err != nil {
+					_, _ = redColor.Println(err)
+				} else {
+					fmt.Printf("%s: %s\n", greenColorFunc("OK"), nameFile)
+					if context.Bool("rm") {
+						_ = os.Remove(nameFile)
+					}
+				}
+			}
+		} else {
+			_, _ = redColor.Println(err)
 		}
 	}
 
-	if len(strResultEnd) > 0 {
-		strResultEnd = "\n==================== Lines more than 2 ====================\n\n" + strResultEnd
+	for _, nameFile := range files {
+		info, _ := os.Stat(nameFile)
+		if int(info.Size()/1048576) >= context.Int("as") {
+			wg.Add(1)
+			go squeezeFile(nameFile, info, true)
+		} else {
+			squeezeFile(nameFile, info, false)
+		}
 	}
-
-	_, err = file.WriteString(strResultStart + strResultEnd)
-
-	return err
+	wg.Wait()
 }

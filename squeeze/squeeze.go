@@ -11,7 +11,10 @@ import (
 	"sync"
 )
 
-const prefix = "_"
+const (
+	prefix = "_"
+	dividerSize = 1048576
+)
 
 var (
 	redColor = color.New(color.FgRed)
@@ -19,24 +22,30 @@ var (
 	greenColorFunc = greenColor.SprintFunc()
 )
 
-func Squeeze(context *cli.Context) {
+type Flags struct {
+	ExtFlag, DatePatternFlag      string
+	RecursionFlag, RemoveFlag     bool
+	DateLengthFlag, SizeFileAsync int
+}
+
+func Squeeze(context *cli.Context, flags Flags) {
 	rootPath := "./"
 	if context.Args().Len() > 0 {
 		rootPath = context.Args().First()
 	}
 
-	files, err := findFiles(rootPath, context)
+	files, err := findFiles(rootPath, flags)
 	if err != nil {
 		_, _ = redColor.Println(err)
 	} else {
 		if len(files) > 0 {
-			squeezeFiles(files, context)
+			squeezeFiles(files, flags)
 			_, _ = greenColor.Println("DONE!")
 		}
 	}
 }
 
-func findFiles(rootPath string, context *cli.Context) ([]string, error) {
+func findFiles(rootPath string, flags Flags) ([]string, error) {
 	var files []string
 	var err error
 
@@ -47,10 +56,10 @@ func findFiles(rootPath string, context *cli.Context) ([]string, error) {
 	} else {
 		if !info.IsDir() {
 			files, err = filepath.Glob(rootPath)
-		} else if context.Bool("r") {
-			files, err = recursionGlob(rootPath, context.String("ext"))
+		} else if flags.RemoveFlag {
+			files, err = recursionGlob(rootPath, flags.ExtFlag)
 		} else {
-			files, err = filepath.Glob(rootPath + "/*" + context.String("ext"))
+			files, err = filepath.Glob(rootPath + "/*" + flags.ExtFlag)
 		}
 	}
 
@@ -73,14 +82,14 @@ func recursionGlob(filePath string, extension string) ([]string, error) {
 	return files, err
 }
 
-func squeezeFiles(files []string, context *cli.Context) {
+func squeezeFiles(files []string, flags Flags) {
 	var wg sync.WaitGroup
 
 	squeezeFile := func(nameFile string, info os.FileInfo,async bool) {
 		if async {
 			defer wg.Done()
 		}
-		mapStat, err := GetMapStat(nameFile, context.Int("dlen"), context.String("dpat"))
+		mapStat, err := GetMapStat(nameFile, flags.DateLengthFlag, flags.DatePatternFlag)
 		if err == nil {
 			name := info.Name()
 			if !strings.HasPrefix(name, prefix) {
@@ -89,7 +98,7 @@ func squeezeFiles(files []string, context *cli.Context) {
 					_, _ = redColor.Println(err)
 				} else {
 					fmt.Printf("%s: %s\n", greenColorFunc("OK"), nameFile)
-					if context.Bool("rm") {
+					if flags.RemoveFlag {
 						_ = os.Remove(nameFile)
 					}
 				}
@@ -101,7 +110,7 @@ func squeezeFiles(files []string, context *cli.Context) {
 
 	for _, nameFile := range files {
 		info, _ := os.Stat(nameFile)
-		if int(info.Size()/1048576) >= context.Int("as") {
+		if int(info.Size()/dividerSize) >= flags.SizeFileAsync {
 			wg.Add(1)
 			go squeezeFile(nameFile, info, true)
 		} else {

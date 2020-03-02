@@ -45,7 +45,15 @@ func main() {
 			},
 		},
 		Action: func(context *cli.Context) error {
-			squeeze.Squeeze(context)
+			flags := squeeze.Flags{
+				ExtFlag:         context.String("ext"),
+				DatePatternFlag: context.String("dpat"),
+				RecursionFlag:   context.Bool("r"),
+				RemoveFlag:      context.Bool("rm"),
+				DateLengthFlag:  context.Int("dlen"),
+				SizeFileAsync:   context.Int("as"),
+			}
+			squeeze.Squeeze(context, flags)
 			return nil
 		},
 	}

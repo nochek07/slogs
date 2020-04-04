@@ -26,10 +26,10 @@ func GetMapStat(nameFile string, dateLength int, datePattern string) (map[string
 	var index uint = 0
 	for scanner.Scan() {
 		str := scanner.Text()
-		if len(str)>dateLength {
+		if len(str) > dateLength {
 			strData := str[:dateLength]
 
-			_, err = time.Parse(datePattern, strData)
+			_, err := time.Parse(datePattern, strData)
 			if err == nil {
 				str = strings.TrimPrefix(str, strData)
 				str = strings.TrimSpace(str)
@@ -46,6 +46,7 @@ func GetMapStat(nameFile string, dateLength int, datePattern string) (map[string
 		}
 		index++
 	}
+
 	return mapStat, nil
 }
 

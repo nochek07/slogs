@@ -14,7 +14,7 @@ func TestSortRepeat(t *testing.T) {
 	data := getDataIntSlice(sortedStructByRepeat)
 
 	if sort.IsSorted(data) {
-		t.Fail()
+		t.Errorf("Not sorted")
 	}
 }
 
@@ -23,7 +23,7 @@ func TestSortIndex(t *testing.T) {
 	data := getDataIntSlice(sortedStructByIndex)
 
 	if sort.IsSorted(sort.Reverse(data)) {
-		t.Fail()
+		t.Errorf("Not sorted")
 	}
 }
 

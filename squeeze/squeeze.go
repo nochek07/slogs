@@ -23,8 +23,8 @@ var (
 )
 
 type Flags struct {
-	ExtFlag, DatePatternFlag      string
-	RecursionFlag, RemoveFlag     bool
+	ExtFlag, DatePatternFlag string
+	RecursionFlag, RemoveFlag bool
 	DateLengthFlag, SizeFileAsync int
 }
 
@@ -85,7 +85,7 @@ func recursionGlob(filePath string, extension string) ([]string, error) {
 func squeezeFiles(files []string, flags Flags) {
 	var wg sync.WaitGroup
 
-	squeezeFile := func(nameFile string, info os.FileInfo,async bool) {
+	squeezeFile := func(nameFile string, info os.FileInfo, async bool) {
 		if async {
 			defer wg.Done()
 		}
@@ -93,7 +93,7 @@ func squeezeFiles(files []string, flags Flags) {
 		if err == nil {
 			name := info.Name()
 			if !strings.HasPrefix(name, prefix) {
-				err = ReturnResult(filepath.Dir(nameFile)+"/" + prefix + name, mapStat)
+				err = ReturnResult(filepath.Dir(nameFile) + "/" + prefix + name, mapStat)
 				if err != nil {
 					_, _ = redColor.Println(err)
 				} else {

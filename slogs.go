@@ -45,6 +45,10 @@ func main() {
 			},
 		},
 		Action: func(context *cli.Context) error {
+			rootPath := "./"
+			if context.Args().Len() > 0 {
+				rootPath = context.Args().First()
+			}
 			flags := squeeze.Flags{
 				ExtFlag:         context.String("ext"),
 				DatePatternFlag: context.String("dpat"),
@@ -53,7 +57,7 @@ func main() {
 				DateLengthFlag:  context.Int("dlen"),
 				SizeFileAsync:   context.Int("as"),
 			}
-			squeeze.Squeeze(context, flags)
+			squeeze.Squeeze(rootPath, flags)
 			return nil
 		},
 	}

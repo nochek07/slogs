@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/fatih/color"
-	"github.com/urfave/cli/v2"
 	"os"
 	"path/filepath"
 	"strings"
@@ -28,12 +27,7 @@ type Flags struct {
 	DateLengthFlag, SizeFileAsync int
 }
 
-func Squeeze(context *cli.Context, flags Flags) {
-	rootPath := "./"
-	if context.Args().Len() > 0 {
-		rootPath = context.Args().First()
-	}
-
+func Squeeze(rootPath string, flags Flags) {
 	files, err := findFiles(rootPath, flags)
 	if err != nil {
 		_, _ = redColor.Println(err)

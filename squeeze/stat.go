@@ -2,6 +2,7 @@ package squeeze
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -84,7 +85,13 @@ func ReturnResult(nameFile string, mapValues map[string]Stat) error {
 		strResultEnd = "\n==================== Lines more than 2 ====================\n\n" + strResultEnd
 	}
 
-	_, err = file.WriteString(strResultStart + strResultEnd)
+	result := strResultStart + strResultEnd
+	if len(result) > 0 {
+		_, err = file.WriteString(result)
+	} else {
+		_ = os.Remove(nameFile)
+		err = errors.New("empty result file")
+	}
 
 	return err
 }

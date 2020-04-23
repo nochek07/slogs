@@ -5,20 +5,24 @@ import (
 	"os"
 	"testing"
 )
+
 var (
 	tempDir = os.TempDir()
-	fileNameInputTest = tempDir +  "/TestInput.txt"
-	fileNameOutputTest = tempDir +  "/TestOutput.txt"
-	fileNameInputEmptyTest = tempDir +  "/TestInputEmpty.txt"
-	fileNameInputEmptyOtherTest = tempDir +  "/TestInputEmptyOther.txt"
-	fileNameInputWithoutStatTest = tempDir +  "/TestInputWithoutStat.txt"
-	fileNameOutputWithoutStatTest = tempDir +  "/TestOutputWithoutStat.txt"
+	dirTestStat = tempDir + "/test_stat"
+	fileNameInputTest = dirTestStat + "/TestInput.txt"
+	fileNameOutputTest = dirTestStat + "/TestOutput.txt"
+	fileNameInputEmptyTest = dirTestStat + "/TestInputEmpty.txt"
+	fileNameInputEmptyOtherTest = dirTestStat + "/TestInputEmptyOther.txt"
+	fileNameInputWithoutStatTest = dirTestStat + "/TestInputWithoutStat.txt"
+	fileNameOutputWithoutStatTest = dirTestStat + "/TestOutputWithoutStat.txt"
+	fileNameInputErrorTest = dirTestStat + "/TestInputError.txt"
+	fileNameOutputErrorTest = dirTestStat + "/TestOutputError.txt"
 	string1 = "This is a test string"
 	string2 = "This is a another test string"
 )
 
 func TestStat(t *testing.T) {
-	setUp()
+	setUpStat()
 
 	t.Run("InputNoExist", func(t *testing.T) {
 		_, err := GetMapStat("FileName", 0, "")
@@ -114,10 +118,26 @@ func TestStat(t *testing.T) {
 		}
 	})
 
-	tearDown()
+	t.Run("ReturnResultError", func(t *testing.T) {
+		stat, _ := GetMapStat(fileNameInputErrorTest, 15, "Jan _2 15:04:05")
+		err := ReturnResult(fileNameOutputErrorTest, stat)
+
+		if err.Error() != "empty result file" {
+			t.Errorf("Error")
+		}
+
+		_, err = os.Stat(fileNameOutputErrorTest)
+		if !os.IsNotExist(err) {
+			t.Fail()
+		}
+	})
+
+	tearDownStat()
 }
 
-func setUp() {
+func setUpStat() {
+	_ = os.Mkdir(dirTestStat,0777)
+
 	fileInput, err1 := os.OpenFile(fileNameInputTest, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0777)
 	if err1 == nil {
 		_, _ = fileInput.WriteString("Oct 19 01:20:58 " + string1 + "\n")
@@ -146,15 +166,17 @@ func setUp() {
 
 		defer fileInputWithoutStat.Close()
 	}
+
+	fileInputError, err5 := os.OpenFile(fileNameInputErrorTest, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0777)
+	if err5 == nil {
+		_, _ = fileInputError.WriteString("Oct 9 01:20:58 " + string1)
+
+		defer fileInputError.Close()
+	}
 }
 
-func tearDown() {
-	_ = os.Remove(fileNameInputTest)
-	_ = os.Remove(fileNameOutputTest)
-	_ = os.Remove(fileNameInputEmptyTest)
-	_ = os.Remove(fileNameInputEmptyOtherTest)
-	_ = os.Remove(fileNameOutputWithoutStatTest)
-	_ = os.Remove(fileNameInputWithoutStatTest)
+func tearDownStat() {
+	_ = os.RemoveAll(dirTestStat)
 }
 
 func getLenFile(path string) int {

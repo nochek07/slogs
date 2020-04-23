@@ -50,7 +50,7 @@ func findFiles(rootPath string, flags Flags) ([]string, error) {
 	} else {
 		if !info.IsDir() {
 			files, err = filepath.Glob(rootPath)
-		} else if flags.RemoveFlag {
+		} else if flags.RecursionFlag {
 			files, err = recursionGlob(rootPath, flags.ExtFlag)
 		} else {
 			files, err = filepath.Glob(rootPath + "/*" + flags.ExtFlag)
@@ -104,7 +104,7 @@ func squeezeFiles(files []string, flags Flags) {
 
 	for _, nameFile := range files {
 		info, _ := os.Stat(nameFile)
-		if int(info.Size()/dividerSize) >= flags.SizeFileAsync {
+		if int(info.Size() / dividerSize) >= flags.SizeFileAsync {
 			wg.Add(1)
 			go squeezeFile(nameFile, info, true)
 		} else {

@@ -27,7 +27,7 @@ type Flags struct {
 	DateLengthFlag, SizeFileAsync int
 }
 
-func Squeeze(rootPath string, flags Flags) {
+func Execute(rootPath string, flags Flags) {
 	files, err := findFiles(rootPath, flags)
 	if err != nil {
 		_, _ = redColor.Println(err)

@@ -33,7 +33,7 @@ func TestSqueeze(t *testing.T) {
 		if err.Error() != "path error" {
 			t.Errorf("Error")
 		}
-		Squeeze(":", flags)
+		Execute(":", flags)
 	})
 
 	t.Run("findFilesOncePath", func(t *testing.T) {
@@ -47,8 +47,8 @@ func TestSqueeze(t *testing.T) {
 		}
 	})
 
-	t.Run("Squeeze", func(t *testing.T) {
-		Squeeze(dirTestSqueeze, flags)
+	t.Run("Execute", func(t *testing.T) {
+		Execute(dirTestSqueeze, flags)
 
 		newFullFileName1 := dirTestSqueeze + prefix + fileName1
 		newFullFileName2 := dirTestSqueeze + prefix + fileName2
@@ -72,7 +72,7 @@ func TestSqueeze(t *testing.T) {
 	t.Run("SqueezeRemove", func(t *testing.T) {
 		flags.RecursionFlag = true
 		flags.RemoveFlag = true
-		Squeeze(dirTestSqueeze, flags)
+		Execute(dirTestSqueeze, flags)
 
 		_, err1 := os.Stat(fullFileName1)
 		_, err2 := os.Stat(fullFileName2)

@@ -14,14 +14,16 @@ type Stat struct {
 	date string
 }
 
-func GetMapStat(nameFile string, dateLength int, datePattern string) (map[string]Stat, error) {
+type MapStat map[string]Stat
+
+func GetMapStat(nameFile string, dateLength int, datePattern string) (MapStat, error) {
 	file, err := os.Open(nameFile)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 
-	mapStat := make(map[string]Stat)
+	mapStat := make(MapStat)
 
 	scanner := bufio.NewScanner(file)
 	var index uint = 0
@@ -32,16 +34,15 @@ func GetMapStat(nameFile string, dateLength int, datePattern string) (map[string
 
 			_, err := time.Parse(datePattern, strData)
 			if err == nil {
-				str = strings.TrimPrefix(str, strData)
-				str = strings.TrimSpace(str)
+				key := strings.TrimSpace(strings.TrimPrefix(str, strData))
 
-				if value, ok := mapStat[str]; ok {
+				if value, ok := mapStat[key]; ok {
 					value.repeat++
 					value.index = index
 					value.date = strData
-					mapStat[str] = value
+					mapStat[key] = value
 				} else {
-					mapStat[str] = Stat{1, index, strData}
+					mapStat[key] = Stat{1, index, strData}
 				}
 			}
 		}
@@ -51,7 +52,7 @@ func GetMapStat(nameFile string, dateLength int, datePattern string) (map[string
 	return mapStat, nil
 }
 
-func ReturnResult(nameFile string, mapValues map[string]Stat) error {
+func ReturnResult(nameFile string, mapValues MapStat) error {
 
 	file, err := os.OpenFile(nameFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0777)
 

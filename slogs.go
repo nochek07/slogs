@@ -57,7 +57,7 @@ func main() {
 				DateLengthFlag:  context.Int("dlen"),
 				SizeFileAsync:   context.Int("as"),
 			}
-			squeeze.Squeeze(rootPath, flags)
+			squeeze.Execute(rootPath, flags)
 			return nil
 		},
 	}

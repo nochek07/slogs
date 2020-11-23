@@ -5,13 +5,17 @@ import (
 	"testing"
 )
 
-var kv = []KeyValue{
-	{"a", 4}, {"b", 1}, {"c", 17}, {"n", 3}, {"f", 15},
+var kv = []KeyValue {
+	{"a", 4},
+	{"b", 1},
+	{"c", 17},
+	{"n", 3},
+	{"f", 15},
 }
 
 func TestSortRepeat(t *testing.T) {
 	sortedStructByRepeat := KeyValueByRepeat{}.sort(kv)
-	data := getDataIntSlice(sortedStructByRepeat)
+	data := getIntSlice(sortedStructByRepeat)
 
 	if sort.IsSorted(data) {
 		t.Errorf("Not sorted")
@@ -20,16 +24,16 @@ func TestSortRepeat(t *testing.T) {
 
 func TestSortIndex(t *testing.T) {
 	sortedStructByIndex := KeyValueByIndex{}.sort(kv)
-	data := getDataIntSlice(sortedStructByIndex)
+	data := getIntSlice(sortedStructByIndex)
 
 	if sort.IsSorted(sort.Reverse(data)) {
 		t.Errorf("Not sorted")
 	}
 }
 
-func getDataIntSlice(dataKeyValue []KeyValue) sort.IntSlice  {
+func getIntSlice(kvArray []KeyValue) sort.IntSlice  {
 	var data sort.IntSlice
-	for _, keyValue := range dataKeyValue {
+	for _, keyValue := range kvArray {
 		data = append(data, int(keyValue.Value))
 	}
 	return data

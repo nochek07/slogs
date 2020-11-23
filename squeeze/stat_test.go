@@ -50,12 +50,21 @@ func TestStat(t *testing.T) {
 
 	t.Run("GetMapStat", func(t *testing.T) {
 		type DataStruct struct {
-			input string
-			repeat1, index1, repeat2, index2 uint
+			input                     string
+			repeatFirst, indexFirst   uint
+			repeatSecond, indexSecond uint
 		}
 		arrayDataStruct := []DataStruct {
-			{fileNameInputTest, 2, 1, 1, 2},
-			{fileNameInputWithoutStatTest, 1, 0, 1, 1},
+			{
+				fileNameInputTest,
+				2, 1,
+				1, 2,
+			},
+			{
+				fileNameInputWithoutStatTest,
+				1, 0,
+				1, 1,
+			},
 		}
 
 		for _, data := range arrayDataStruct {
@@ -70,7 +79,7 @@ func TestStat(t *testing.T) {
 			}
 
 			if stat1, ok := stat[string1]; ok {
-				if !(stat1.repeat == data.repeat1 && stat1.index == data.index1) {
+				if !(stat1.repeat == data.repeatFirst && stat1.index == data.indexFirst) {
 					t.Fail()
 				}
 			} else {
@@ -78,7 +87,7 @@ func TestStat(t *testing.T) {
 			}
 
 			if stat2, ok := stat[string2]; ok {
-				if !(stat2.repeat == data.repeat2 && stat2.index == data.index2) {
+				if !(stat2.repeat == data.repeatSecond && stat2.index == data.indexSecond) {
 					t.Fail()
 				}
 			} else {
@@ -175,10 +184,6 @@ func setUpStat() {
 	}
 }
 
-func tearDownStat() {
-	_ = os.RemoveAll(dirTestStat)
-}
-
 func getLenFile(path string) int {
 	file, _ := os.Open(path)
 	fileScanner := bufio.NewScanner(file)
@@ -187,4 +192,8 @@ func getLenFile(path string) int {
 		lineCount++
 	}
 	return lineCount
+}
+
+func tearDownStat() {
+	_ = os.RemoveAll(dirTestStat)
 }

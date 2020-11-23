@@ -9,18 +9,18 @@ type KeyValue struct {
 
 type KeyValueInterface interface {
 	sort(kvArray []KeyValue) []KeyValue
-	condition(kv1, kv2 KeyValue) bool
+	condition(kvFirst, kvSecond KeyValue) bool
 }
 
 type KeyValueByRepeat struct {}
 type KeyValueByIndex struct {}
 
-func (kvByType KeyValueByRepeat) condition(kv1, kv2 KeyValue) bool {
-	return kv1.Value > kv2.Value
+func (kvByType KeyValueByRepeat) condition(kvFirst, kvSecond KeyValue) bool {
+	return kvFirst.Value > kvSecond.Value
 }
 
-func (kvByType KeyValueByIndex) condition(kv1, kv2 KeyValue) bool {
-	return kv1.Value < kv2.Value
+func (kvByType KeyValueByIndex) condition(kvFirst, kvSecond KeyValue) bool {
+	return kvFirst.Value < kvSecond.Value
 }
 
 func (kvByType KeyValueByRepeat) sort(kvArray []KeyValue) []KeyValue {

@@ -79,10 +79,7 @@ func recursionGlob(filePath string, extension string) ([]string, error) {
 func squeezeFiles(files []string, flags Flags) {
 	var wg sync.WaitGroup
 
-	squeezeFile := func(nameFile string, info os.FileInfo, async bool) {
-		if async {
-			defer wg.Done()
-		}
+	squeezeFile := func(nameFile string, info os.FileInfo) {
 		mapStat, err := GetMapStat(nameFile, flags.DateLengthFlag, flags.DatePatternFlag)
 		if err == nil {
 			name := info.Name()
@@ -106,9 +103,12 @@ func squeezeFiles(files []string, flags Flags) {
 		info, _ := os.Stat(nameFile)
 		if int(info.Size() / dividerSize) >= flags.SizeFileAsync {
 			wg.Add(1)
-			go squeezeFile(nameFile, info, true)
+			go func(nameFile string, info os.FileInfo) {
+				squeezeFile(nameFile, info)
+				wg.Done()
+			}(nameFile, info)
 		} else {
-			squeezeFile(nameFile, info, false)
+			squeezeFile(nameFile, info)
 		}
 	}
 	wg.Wait()

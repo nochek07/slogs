@@ -1,4 +1,4 @@
-slogs
+slogs manual
 ===
 
 ```

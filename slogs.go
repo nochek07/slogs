@@ -10,7 +10,7 @@ import (
 func main() {
 	app := &cli.App{
 		Name: "slogs",
-		Usage: "to squeeze log files",
+		Usage: "squeezing log files",
 		ArgsUsage: "[FilePath or DirPath (default: ./)]",
 		Flags: []cli.Flag {
 			&cli.StringFlag{

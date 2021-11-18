@@ -3,10 +3,13 @@ slogs manual
 
 ```
 NAME:
-   slogs - to squeeze log files
+   slogs - squeezing log files
 
 USAGE:
-   slogs [global options] command [command options] [FilePath or DirPath (default: ./)]
+   slogs [global options] [argument]
+   
+ARGUMENT:
+    FilePath or DirPath (default: ./)       
 
 COMMANDS:
    help, h  Shows a list of commands or help for one command

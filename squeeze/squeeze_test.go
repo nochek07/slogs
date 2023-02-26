@@ -17,12 +17,12 @@ var (
 		SizeFileAsync:   1,
 	}
 	dirTestSqueeze = tempDir + "/test_squeeze/"
-	fileName1 = "test1.txt"
-	fileName2 = "test2.txt"
-	fileName3 = "test3.txt"
-	fullFileName1 = dirTestSqueeze + fileName1
-	fullFileName2 = dirTestSqueeze + fileName2
-	fullFileName3 = dirTestSqueeze + fileName3
+	fileName1      = "test1.txt"
+	fileName2      = "test2.txt"
+	fileName3      = "test3.txt"
+	fullFileName1  = dirTestSqueeze + fileName1
+	fullFileName2  = dirTestSqueeze + fileName2
+	fullFileName3  = dirTestSqueeze + fileName3
 )
 
 func TestSqueeze(t *testing.T) {
@@ -90,7 +90,7 @@ func TestSqueeze(t *testing.T) {
 }
 
 func setUpSqueeze() {
-	_ = os.Mkdir(dirTestSqueeze,0777)
+	_ = os.Mkdir(dirTestSqueeze, 0777)
 
 	fileInput1, err1 := os.OpenFile(fullFileName1, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0777)
 	if err1 == nil {
